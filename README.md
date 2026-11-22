@@ -23,7 +23,3 @@ _Ссылка на публичную доску появится в PR `docs/ro
 ## Документы
 `docs/`: architecture, pipeline, regulation, roles, dev-guide, prod-scenario, sppr-integration, migration-tz, license, roadmap, competitors, ai-usage.
 
-## Правила
-Секреты, дистрибутивы и лицензии 1С в репозиторий не попадают. Работа через issue и PR: [CONTRIBUTING.md](CONTRIBUTING.md).
-
-Часть материалов подготовлена с помощью Claude Code, см. [docs/ai-usage.md](docs/ai-usage.md).
