@@ -25,7 +25,6 @@
 ## Документация
 
 - [Статус требований](docs/requirements-status.md).
-- [Результаты локального тестирования](docs/evidence/local-sandbox-test.md).
 - [Сведения об использовании ИИ](docs/ai-usage.md).
 - [Правила работы с репозиторием](CONTRIBUTING.md).
 
