@@ -1,24 +1,63 @@
+# CI/CD-стенд 1С для VPS с ограниченными ресурсами.
+# Доступ по IP и портам (без домена/nginx): GitLab :8929, SonarQube :9000, SSH GitLab :2224.
+# Секреты и адрес задаются в docker/.env (см. .env.example), в git не коммитятся.
+#
+# Запуск всего стека:   docker compose up -d
+# Запуск только GitLab: docker compose up -d gitlab gitlab-runner
+# SonarQube:            docker compose up -d postgres sonarqube
+
 services:
   gitlab:
-    image: gitlab/gitlab-ce:latest
+    image: gitlab/gitlab-ce:19.6.2-ce.0
     container_name: gitlab
     hostname: gitlab
     restart: unless-stopped
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost:8929'
-        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+        external_url 'http://${GITLAB_EXTERNAL_HOST}:${GITLAB_HTTP_PORT:-8929}'
+        gitlab_rails['gitlab_shell_ssh_port'] = ${GITLAB_SSH_PORT:-2224}
+        # --- экономия памяти и диска для слабого VPS ---
+        puma['worker_processes'] = 0
+        puma['min_threads'] = 1
+        puma['max_threads'] = 4
+        sidekiq['concurrency'] = 2
+        postgresql['shared_buffers'] = '128MB'
+        postgresql['work_mem'] = '4MB'
+        nginx['worker_processes'] = 1
+        prometheus_monitoring['enable'] = false
+        prometheus['enable'] = false
+        alertmanager['enable'] = false
+        node_exporter['enable'] = false
+        redis_exporter['enable'] = false
+        postgres_exporter['enable'] = false
+        gitlab_exporter['enable'] = false
+        gitlab_kas['enable'] = false
+        gitlab_pages['enable'] = false
+        gitlab_rails['smtp_enable'] = false
+        gitlab_rails['time_zone'] = 'UTC'
+        gitlab_rails['initial_root_password'] = '${GITLAB_ROOT_PASSWORD}'
     ports:
-      - "8929:80"
-      - "2224:22"
+      - "${GITLAB_HTTP_PORT:-8929}:${GITLAB_HTTP_PORT:-8929}"
+      - "${GITLAB_SSH_PORT:-2224}:22"
     volumes:
       - ./gitlab/config:/etc/gitlab
       - ./gitlab/logs:/var/log/gitlab
       - ./gitlab/data:/var/opt/gitlab
     shm_size: "256m"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-fsS",
+          "http://localhost:${GITLAB_HTTP_PORT:-8929}/-/health",
+        ]
+      interval: 60s
+      timeout: 10s
+      retries: 5
 
   gitlab-runner:
-    image: gitlab/gitlab-runner:alpine
+    image: gitlab/gitlab-runner:alpine-v19.6.1
     container_name: gitlab-runner
     restart: unless-stopped
     depends_on:
@@ -26,3 +65,41 @@ services:
     volumes:
       - ./runner/config:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: sonar-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${SONAR_DB_USER:-sonar}
+      POSTGRES_PASSWORD: ${SONAR_DB_PASSWORD:?set SONAR_DB_PASSWORD in docker/.env}
+      POSTGRES_DB: ${SONAR_DB_NAME:-sonar}
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+    shm_size: "128m"
+
+  sonarqube:
+    image: sonarqube:26.11.0.134175-community
+    container_name: sonarqube
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://postgres:5432/${SONAR_DB_NAME:-sonar}
+      SONAR_JDBC_USERNAME: ${SONAR_DB_USER:-sonar}
+      SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD:?set SONAR_DB_PASSWORD in docker/.env}
+      SONAR_WEB_SYSTEMPASSCODE: ${SONAR_ADMIN_PASSWORD:-admin}
+      # уменьшенный heap, чтобы умещаться в 4 ГБ RAM вместе с GitLab
+      SONAR_WEB_JAVAOPTS: "-Xmx512m -Xms128m"
+      SONAR_CE_JAVAOPTS: "-Xmx512m -Xms128m"
+      SONAR_SEARCH_JAVAOPTS: "-Xmx512m -Xms512m"
+    ports:
+      - "${SONAR_HTTP_PORT:-9000}:9000"
+    volumes:
+      - ./sonar/data:/opt/sonarqube/data
+      - ./sonar/extensions:/opt/sonarqube/extensions
+      - ./sonar/logs:/opt/sonarqube/logs
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
