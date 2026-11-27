@@ -1,0 +1,36 @@
+Демо CI/CD для 1С: зелёный и заблокированный pipeline
+Дата: 2026-11-27
+Стенд: http://185.20.225.253:8929
+
+ЗЕЛЁНЫЙ СЦЕНАРИЙ
+- Проект: onec-platform/demo-1c
+- Ветка: feature/demo -> main
+- MR: !1 (merged)
+- Pipeline: #7 (success), job lint (success)
+- SonarQube: quality gate onec-gate — OK
+
+ЗАБЛОКИРОВАННЫЙ СЦЕНАРИЙ
+- Ветка: feature/bad (добавлен src/bad.bsl с синтаксической ошибкой)
+- MR: !2 (opened)
+- Pipeline: #10 (failed), job lint (failed, exit code 3)
+- Причина: QUALITY GATE STATUS: FAILED, critical_violations = 1
+- Sonar issue: CRITICAL BUG, src/bad.bsl:4 —
+  «Ошибка разбора исходного кода. Ожидался один из токенов:
+  ENDIF_KEYWORD, ELSIF_KEYWORD, ELSE_KEYWORD»
+- MR !2 detailed_merge_status: ci_must_pass (merge заблокирован)
+
+ССЫЛКИ
+- Зелёный pipeline: http://185.20.225.253:8929/onec-platform/demo-1c/-/pipelines/7
+- Зелёный MR:      http://185.20.225.253:8929/onec-platform/demo-1c/-/merge_requests/1
+- Красный pipeline: http://185.20.225.253:8929/onec-platform/demo-1c/-/pipelines/10
+- Красный MR:      http://185.20.225.253:8929/onec-platform/demo-1c/-/merge_requests/2
+- SonarQube:       http://185.20.225.253:9000/dashboard?id=onec-platform%3Ademo-1c
+
+ОГРАНИЧЕНИЯ
+- Стадии build/test/artifact/deploy выключены (ONEC_ENABLED=false): нет платформы 1С
+  и раннера с тегом onec.
+- Штатная интеграция GitLab ↔ SonarQube (виджет отчёта в MR) в этой сборке
+  недоступна (API 404, модели интеграции отсутствуют). Отчёт открывается по
+  ссылке в SonarQube, merge блокируется через pipeline (quality gate wait).
+- Стенд на 4 ГБ RAM: анализ SonarQube на «плохой» ветке занял около 10 минут
+  из-за swap. Для комфортного демо рекомендуется 8 ГБ RAM или вынос SonarQube.
