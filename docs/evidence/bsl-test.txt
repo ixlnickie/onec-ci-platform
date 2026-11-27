@@ -1,0 +1,28 @@
+Тестовый репозиторий bsl-test — проверка пайплайна
+Дата: 2026-11-27
+Проект: http://185.20.225.253:8929/onec-platform/bsl-test
+
+ЗЕЛЁНЫЙ СЦЕНАРИЙ (main)
+- src/good.bsl — корректный BSL
+- pipeline #11: success, job lint success
+- ссылка: http://185.20.225.253:8929/onec-platform/bsl-test/-/pipelines/11
+
+КРАСНЫЙ СЦЕНАРИЙ (test/bad -> main, MR !1)
+- src/bad.bsl — пропущен КонецЕсли (синтаксическая ошибка)
+- pipeline #12: failed, job lint failed (exit code 3)
+- причина: QUALITY GATE STATUS: FAILED
+- quality gate onec-gate: blocker_violations=0 (OK), critical_violations=1 (ERROR)
+- Sonar issue: CRITICAL BUG, src/bad.bsl:4 —
+  «Ошибка разбора исходного кода. Ожидался один из токенов:
+  ENDIF_KEYWORD, ELSIF_KEYWORD, ELSE_KEYWORD»
+- MR !1 detailed_merge_status: ci_must_pass (merge заблокирован)
+- ссылки: http://185.20.225.253:8929/onec-platform/bsl-test/-/pipelines/12
+          http://185.20.225.253:8929/onec-platform/bsl-test/-/merge_requests/1
+
+ПОРОГ
+- Блокируют только Blocker/Critical. MINOR (магические числа, устаревший
+  метод «Сообщить») в src/good.bsl не блокируют — pipeline зелёный.
+
+ОГРАНИЧЕНИЯ
+- Анализируется только BSL под src/ (SonarQube + communitybsl).
+- Сборка .cf, тесты и deploy не запускаются: нет платформы 1С и раннера onec.
