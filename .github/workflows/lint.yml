@@ -6,13 +6,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: bash -n
-        run: for f in ci/scripts/*.sh; do bash -n "$f"; done
+        run: |
+          shopt -s nullglob globstar
+          for f in ci/scripts/*.sh provision/**/*.sh; do bash -n "$f"; done
+      - name: python compile
+        run: python3 -m py_compile provision/*.py provision/hook-service/*.py
       - name: yaml
-        run: pip install yamllint && yamllint -d relaxed ci/.gitlab-ci.yml
+        run: |
+          pip install yamllint
+          yamllint -d relaxed \
+            ci/.gitlab-ci.yml \
+            ci/onec-pipeline.yml \
+            templates/edt-configuration/.gitlab-ci.yml \
+            docker/docker-compose.yml
   secrets:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: {fetch-depth: 0}
+        with: { fetch-depth: 0 }
       - uses: gitleaks/gitleaks-action@v2
-        env: {GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }

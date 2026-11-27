@@ -1,0 +1,7 @@
+# Pipeline подключается из центральной библиотеки onec-platform/ci-templates.
+# Свой пайплайн в проекте писать не нужно — только include.
+# Путь подставляется при создании проекта из шаблона (provision/gitlab_provision.py).
+include:
+    - project: "__CI_TEMPLATES_PROJECT__"
+      ref: main
+      file: "/onec-pipeline.yml"

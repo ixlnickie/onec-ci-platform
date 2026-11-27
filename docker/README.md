@@ -57,6 +57,20 @@
 0 3 * * * /opt/onec-ci/docker/backup.sh >> /var/log/onec-ci-backup.log 2>&1
 ```
 
+## Автодонастройка проектов (опционально)
+
+Сервис `hook-service` живёт в профиле `provisioning` и не стартует при обычном
+`docker compose up -d`. Ему нужен каталог `../provision` рядом с `docker/`
+(то есть разворачивается весь репозиторий, а не только `docker/`):
+
+```bash
+cp ../provision/.env.example ../provision/.env   # заполнить
+docker compose --profile provisioning up -d --build hook-service
+```
+
+System hook в GitLab создаётся скриптом `../provision/gitlab_provision.py`.
+Подробности — [`../provision/README.md`](../provision/README.md).
+
 ## Ограничение прототипа
 
 Стенд рассчитан на небольшой VPS. При 4 ГБ RAM активно используется swap;

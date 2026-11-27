@@ -8,8 +8,8 @@
 | 2 | Конфигурация в Git в формате EDT | описано, не запущено | `demo-config/README.md`; `evidence/edt-project-open.png` — [добавить] |
 | 3 | Ветки main / release / feature | описано, не запущено | `regulation.md`; скрин защиты — [добавить] |
 | 4 | Роли | описано, не запущено | `roles.md`; `evidence/gitlab-protected-branches.png` — [добавить] |
-| 5 | Pipeline на MR | описано, не запущено | `ci/.gitlab-ci.yml`; ссылка на pipeline — [добавить] |
-| 6 | Статический анализ BSL, отчёт в Sonar | описано, не запущено | `ci/.bsl-language-server.json`, `ci/sonar-project.properties` |
+| 5 | Pipeline на MR | описано, не запущено | `ci/onec-pipeline.yml`, `provision/gitlab_provision.py`; ссылка на pipeline — [добавить] |
+| 6 | Статический анализ BSL, отчёт в Sonar | описано, не запущено | `templates/edt-configuration/.bsl-language-server.json`, `templates/edt-configuration/sonar-project.properties` |
 | 7 | Анализ виден в MR, критичное блокирует merge | описано, не запущено | `tests/demo-scenario.md`; скрины — [добавить] |
 | 8 | Автосборка | описано, не запущено (нужна платформа 1С) | `ci/scripts/build.sh` |
 | 9 | Автотесты на тестовой ИБ | описано, не запущено (нужна платформа 1С) | `ci/scripts/test.sh` |

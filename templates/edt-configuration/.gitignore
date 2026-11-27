@@ -1,0 +1,21 @@
+# Артефакты сборки
+/build/
+*.cf
+*.cfe
+*.dt
+
+# Служебные файлы рабочей области EDT/Eclipse (не проекта)
+/.metadata/
+*.log
+
+# IDE, не относящиеся к EDT
+.idea/
+.vscode/
+
+# ОС
+.DS_Store
+Thumbs.db
+
+# Локальные секреты
+.env
+*.local

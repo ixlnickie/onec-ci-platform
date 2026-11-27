@@ -103,3 +103,20 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+
+  # Автодонастройка новых GitLab-проектов (system hook project_create).
+  # Не входит в обычный `docker compose up -d`: включается профилем provisioning.
+  #   docker compose --profile provisioning up -d hook-service
+  hook-service:
+    build: ../provision/hook-service
+    image: onec/hook-service:local
+    container_name: onec-hook
+    restart: unless-stopped
+    profiles: ["provisioning"]
+    environment:
+      GITLAB_URL: http://gitlab:${GITLAB_HTTP_PORT:-8929}
+      GITLAB_TOKEN: ${GITLAB_ADMIN_TOKEN:-}
+      WEBHOOK_SECRET: ${HOOK_SECRET:-}
+      SKIP_PATHS: ${SKIP_PATHS:-onec-platform/ci-templates,onec-templates/}
+    expose:
+      - "8099"
